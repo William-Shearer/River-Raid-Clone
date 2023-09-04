@@ -1,0 +1,50 @@
+def fPointsCreation(positions, expand):
+    """
+    If the first point is within 1 px of the top of the screen, create a new first point.
+    The first point is a bit more complicated than deleting the last, as it also needs to create
+    the x position logically, by looking at the current first point in relation to the next one. 
+    It works this way. The points alternate between two equal X values, then one change X value.
+    This constricts or expands the "river". The banks of the river that change the width are at an angle
+    of 30 degrees, and the point itself is inside a range of 100 to 400 pixels from the left, X axis.
+    The minimum change width should be 100 px. Aditionally, if the river converged before, it should expand
+    next time it changes width. For this, a boolean flag expand will == True or False.
+    For convenience, the banks that don't change width will be known as PARALLEL BANKS, 
+    and the change width banks as ANGLE BANKS.
+    PARALLEL BANKS can be anywhere between 300 to 900 pixels long.
+    ANGLE BANKS are determined by the depth of the 30 degree hypotenuse to the new width.
+    """
+    if positions[0].coord_y > -1:
+        new_x_coord = 0
+        new_y_coord = 0
+        y_depth = 0
+        # A new point needs creating. Here come the conditions...
+        if positions[0].coord_x == positions[1].coord_x:
+            available_width = 0
+            # That is, if it was a parallel bank before, a change of width is in order. 
+            # Check if it should expand or not.
+            # Remember, the min and max expansions are 100 px to 400 px.
+            # So, check how mush space we have for widening or narrowing.
+            if expand:
+                # Current position to hard limit bank.
+                available_width = positions[0].coord_x - 100
+                expand = False
+            else:
+                # Current position hard limit to middle.
+                # Remeber, 300 because there is a 100 px bank limit inside the 400 px absolute limit.
+                available_width = 300 - positions[0].coord_x
+                expand = True
+
+            # Create a random width change within that limit, in steps of 10 px.    
+            new_x_coord = randint(0, round(available_width / 10) * 10)
+            # Now calculate the respective y coord at 30 degrees.
+            y_depth = round(tan(0.20944) * new_x_coord)
+            # Compute the new y coord, as from the first y pos.
+            
+        else:
+            # If it is a parallel section, then the length should be calculated.
+            # The length should be somewhere between 250 to 650 px, in steps of 10 px.
+            y_depth = randint(25, 65) * 10
+    
+        new_y_coord = positions[0].coord_y - y_depth
+        # Don't forget to put the 100 px shore hard limit back in.
+        positions.insert(0, Vector2(new_x_coord + 100, new_y_coord))
